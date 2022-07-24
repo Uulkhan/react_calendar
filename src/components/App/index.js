@@ -43,16 +43,19 @@ const EventTitle = styled("input")`
   border-bottom: 1px solid #464648;
 `;
 
-const EventBody = styled("input")`
-  padding: 4px 14px;
-  font-size: 0.85rem;
+const EventBody = styled('textarea')`
+  padding: 8px 14px;
+  font-size: .85rem;
   width: 100%;
   border: unset;
-  background-color: #1e1f21;
-  color: #dddddd;
+  background-color: #1E1F21;
+  color: #DDDDDD;
   outline: unset;
   border-bottom: 1px solid #464648;
+  resize: none;
+  height: 60px;
 `;
+
 const ButtonsWrapper = styled("div")`
   padding: 8px 14px;
   display: flex;
@@ -89,10 +92,10 @@ function App() {
       .then((res) => setEvents(res));
   }, [today]);
 
-  const openFormHandler = (methodName, eventForUpdate) => {
+  const openFormHandler = (methodName, eventForUpdate, dayItem) => {
     console.log("onDoubleClick", methodName);
     setShowForm(true);
-    setEvent(eventForUpdate || defaultEvent);
+    setEvent(eventForUpdate || { ...defaultEvent, date: dayItem.format("X") });
     setMethod(methodName);
   };
 
@@ -107,7 +110,6 @@ function App() {
       [field]: text,
     }));
   };
-
   const eventFetchHandler = () => {
     const fetchUrl =
       method === "Update" ? `${url}/events/${event.id}` : `${url}/events`;
@@ -134,6 +136,26 @@ function App() {
       });
   };
 
+  const removeEventHandler = () => {
+    const fetchUrl = `${url}/events/${event.id}`;
+    const httpMethod = "DELETE";
+
+    fetch(fetchUrl, {
+      method: httpMethod,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        console.log(res);
+        setEvents((prevState) =>
+          prevState.filter((eventEl) => eventEl.id !== event.id)
+        );
+        cancelButtonHandler();
+      });
+  };
+
   return (
     <>
       {isShowForm ? (
@@ -141,10 +163,12 @@ function App() {
           <FormWrapper onClick={(e) => e.stopPropagation()}>
             <EventTitle
               value={event.title}
+              placeholder="Title"
               onChange={(e) => changeEventHandler(e.target.value, "title")}
             />
             <EventBody
               value={event.description}
+              placeholder="Description"
               onChange={(e) =>
                 changeEventHandler(e.target.value, "description")
               }
@@ -152,7 +176,9 @@ function App() {
             <ButtonsWrapper>
               <button onClick={cancelButtonHandler}>Cancel</button>
               <button onClick={eventFetchHandler}>{method}</button>
-              
+              {method === "Update" ? (
+                <button onClick={removeEventHandler}>Remove</button>
+              ) : null}
             </ButtonsWrapper>
           </FormWrapper>
         </FormPositionWrapper>
