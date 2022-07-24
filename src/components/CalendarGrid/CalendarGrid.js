@@ -11,26 +11,30 @@ const GridWrapper = styled.div`
 `;
 
 const CellWrapper = styled.div`
-  min-height: ${(props) => (props.isHeader ? "24px" : "80px")};
+  min-height: ${(props) => (props.isHeader ? 24 : 80)}px;
   min-width: 140px;
   background-color: ${(props) => (props.isWeekday ? "#27282A" : "#1E1F21")};
-  color: ${(props) => (props.isSelectedMonth ? "#dddddd" : "#555759")};
+  color: ${(props) => (props.isSelectedMonth ? "#DDDDDD" : "#555759")};
 `;
+
 const RowInCell = styled.div`
   display: flex;
+  flex-direction: column;
   justify-content: ${(props) =>
     props.justifyContent ? props.justifyContent : "flex-start"};
-    ${props => props.pr && `padding-right: ${props.pr * 8}px`};
+  ${(props) => props.pr && `padding-right: ${props.pr * 8}px`}
 `;
+
 const DayWrapper = styled.div`
   height: 31px;
   width: 31px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 2px;
+  margin: 2px; ;
 `;
-const CurrentDay = styled.div`
+
+const CurrentDay = styled("div")`
   height: 100%;
   width: 100%;
   background: #f00;
@@ -39,22 +43,54 @@ const CurrentDay = styled.div`
   align-items: center;
   justify-content: center;
 `;
-const CalendarGrid = ({ startDay, today, totalDays}) => {
+
+const ShowDayWrapper = styled("div")`
+  display: flex;
+  justify-content: flex-end;
+`;
+
+const EventListWrapper = styled("ul")`
+  margin: unset;
+  list-style-position: inside;
+  padding-left: 4px;
+`;
+
+const EventItemWrapper = styled("button")`
+  position: relative;
+  left: -14px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 114px;
+  border: unset;
+  background: unset;
+  color: #dddddd;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+`;
+
+const CalendarGrid = ({ startDay, today, totalDays, events, openFormHandler}) => {
   const day = startDay.clone().subtract(1, "day");
   const daysMap = [...Array(totalDays)].map(() => day.add(1, "day").clone());
+
   const isCurrentDay = (day) => moment().isSame(day, "day");
-  const isSelectedMonth = (day) => today.isSame(day, 'month');
+  const isSelectedMonth = (day) => today.isSame(day, "month");
 
   return (
     <>
       <GridWrapper isHeader>
         {[...Array(7)].map((_, i) => (
           <CellWrapper isHeader isSelectedMonth>
-            <RowInCell justifyContent={'flex-end'} pr={1}> {moment().day(i + 1).format('ddd')}</RowInCell>
+            <RowInCell justifyContent={"flex-end"} pr={1}>
+              {moment()
+                .day(i + 1)
+                .format("ddd")}
+            </RowInCell>
           </CellWrapper>
         ))}
       </GridWrapper>
-
       <GridWrapper>
         {daysMap.map((dayItem) => (
           <CellWrapper
@@ -63,13 +99,28 @@ const CalendarGrid = ({ startDay, today, totalDays}) => {
             isSelectedMonth={isSelectedMonth(dayItem)}
           >
             <RowInCell justifyContent={"flex-end"}>
-              <DayWrapper>
-                {isCurrentDay(dayItem) && dayItem.format("D") ? (
-                  <CurrentDay>{dayItem.format("D")}</CurrentDay>
-                ) : (
-                  dayItem.format("D")
-                )}
-              </DayWrapper>
+              <ShowDayWrapper>
+                <DayWrapper onClick={() => openFormHandler("Create")}>
+                  {isCurrentDay(dayItem) ? (
+                    <CurrentDay>{dayItem.format("D")}</CurrentDay>
+                  ) : (
+                    dayItem.format("D")
+                  )}
+                </DayWrapper>
+              </ShowDayWrapper>
+              <EventListWrapper>
+                {events
+                  .filter(
+                    (event) =>
+                      event.date >= dayItem.format("X") &&
+                      event.date <= dayItem.clone().endOf("day").format("X")
+                  )
+                  .map((event) => (
+                    <li key={event.id}>
+                      <EventItemWrapper  onClick={() => openFormHandler("Update", event)} >{event.title}</EventItemWrapper>
+                    </li>
+                  ))}
+              </EventListWrapper>
             </RowInCell>
           </CellWrapper>
         ))}
@@ -77,5 +128,7 @@ const CalendarGrid = ({ startDay, today, totalDays}) => {
     </>
   );
 };
+
+export { CalendarGrid };
 
 export default CalendarGrid;
