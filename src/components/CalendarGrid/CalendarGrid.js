@@ -37,17 +37,16 @@ const CurrentDay = styled.div`
   align-items: center;
   justify-content: center;
 `;
-const CalendarGrid = ({ startDay }) => {
+const CalendarGrid = ({ startDay}) => {
   const totalDays = 42;
   const day = startDay.clone().subtract(1, "day");
   const daysMap = [...Array(totalDays)].map(() => day.add(1, "day").clone());
 
   const isCurrentDay = (day) => moment().isSame(day, "day");
-  console.log(isCurrentDay);
   return (
     <GridWrapper>
       {daysMap.map((dayItem) => (
-        <CellWrapper isWeekday={dayItem.day() === 6 || dayItem.day() === 0}>
+        <CellWrapper isWeekday={dayItem.day() === 6 || dayItem.day() === 0}  key={dayItem.unix()}>
           <RowInCell justifyContent={"flex-end"}>
             <DayWrapper>
               {isCurrentDay(dayItem) && dayItem.format("D") ? (
