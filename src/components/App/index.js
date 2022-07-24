@@ -1,5 +1,5 @@
 import moment from "moment";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import CalendarGrid from "../CalendarGrid/CalendarGrid";
 import Header from "../Header/Header";
@@ -14,22 +14,29 @@ const ShadowWrapper = styled.div`
   overflow: hidden;
   box-shadow: 0 0 0 1px #1a1a1a, 0 8px 20px 6px #888;
 `;
+const url = "http://localhost:5000/events";
+const totalDays = 42;
 
 function App() {
   const [today, setToday] = useState(moment());
+
   moment.updateLocale("en", { week: { dow: 1 } });
   const startDay = today.clone().startOf("month").startOf("week");
 
-  const prevHandler = () => {
-    setToday((prev) => prev.clone().subtract(1, "month"));
-  };
-  const todayHandler = () => {
-    setToday(moment());
-  };
-  const nextHandler = () => {
-    console.log("next");
-    setToday((prev) => prev.clone().add(1, "month"));
-  };
+  const prevHandler = () => {setToday((prev) => prev.clone().subtract(1, "month"))};
+  const todayHandler = () => {setToday(moment())};
+  const nextHandler = () => {setToday((prev) => prev.clone().add(1, "month"))};
+
+  const [events, setEvents] = useState([]);
+  const startDayQuery = startDay.clone().format('X');
+  const endDayQuery = startDay.clone().add(totalDays,'days').format('X');
+
+  useEffect(()=> {
+    fetch(`${url}/?date_gte=${startDayQuery}&date_lte=${endDayQuery}`)
+    .then(res=> res.json())
+    .then(res => setEvents(res))
+  }, [])
+
   return (
     <ShadowWrapper>
       <Header />
@@ -39,7 +46,7 @@ function App() {
         todayHandler={todayHandler}
         nextHandler={nextHandler}
       />
-      <CalendarGrid startDay={startDay} />
+      <CalendarGrid startDay={startDay} today={today}  totalDays={totalDays}  />
     </ShadowWrapper>
   );
 }
