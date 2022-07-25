@@ -1,19 +1,19 @@
+import React, { useEffect, useState } from "react";
 import moment from "moment";
-import { useEffect, useState } from "react";
 import styled from "styled-components";
-import CalendarGrid from "../CalendarGrid/CalendarGrid";
-import Header from "../Header/Header";
 import Monitor from "../Monitor/Monitor";
+import CalendarGrid from "../CalendarGrid/CalendarGrid";
 
-const ShadowWrapper = styled.div`
-  border-top: 2px solid #737374;
-  border-left: 2px solid #464648;
-  border-right: 2px solid #464648;
+const ShadowWrapper = styled("div")`
+  border-top: 1px solid #737374;
+  border-left: 1px solid #464648;
+  border-right: 1px solid #464648;
   border-bottom: 2px solid #464648;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 0 0 2px #1a1a1a, 0 8px 20px 6px #888;
+  box-shadow: 0 0 0 1px #1a1a1a, 0 8px 20px 6px #888;
 `;
+
 const FormPositionWrapper = styled("div")`
   position: absolute;
   z-index: 100;
@@ -26,14 +26,15 @@ const FormPositionWrapper = styled("div")`
   align-items: center;
   justify-content: center;
 `;
+
 const FormWrapper = styled(ShadowWrapper)`
+  width: 320px;
   background-color: #1e1f21;
-  // width: 300px;
   color: #dddddd;
-  // box-shadow: unset;
 `;
+
 const EventTitle = styled("input")`
-  padding: 4px 14px;
+  padding: 8px 14px;
   font-size: 0.85rem;
   width: 100%;
   border: unset;
@@ -43,13 +44,13 @@ const EventTitle = styled("input")`
   border-bottom: 1px solid #464648;
 `;
 
-const EventBody = styled('textarea')`
+const EventBody = styled("textarea")`
   padding: 8px 14px;
-  font-size: .85rem;
+  font-size: 0.85rem;
   width: 100%;
   border: unset;
-  background-color: #1E1F21;
-  color: #DDDDDD;
+  background-color: #1e1f21;
+  color: #dddddd;
   outline: unset;
   border-bottom: 1px solid #464648;
   resize: none;
@@ -62,6 +63,16 @@ const ButtonsWrapper = styled("div")`
   justify-content: flex-end;
 `;
 
+const Button = styled("button")`
+  color: ${(props) => (props.danger ? "#f00" : "#27282A")};
+  border: 1px solid ${(props) => (props.danger ? "#f00" : "#27282A")};
+  border-radius: 2px;
+  cursor: pointer;
+  &:not(:last-child) {
+    margin-right: 2px;
+  }
+`;
+
 const url = "http://localhost:5000";
 const totalDays = 42;
 const defaultEvent = {
@@ -69,6 +80,7 @@ const defaultEvent = {
   description: "",
   date: moment().format("X"),
 };
+
 function App() {
   moment.updateLocale("en", { week: { dow: 1 } });
   const [today, setToday] = useState(moment());
@@ -93,7 +105,7 @@ function App() {
   }, [today]);
 
   const openFormHandler = (methodName, eventForUpdate, dayItem) => {
-    console.log("onDoubleClick", methodName);
+    console.log("onClick", methodName);
     setShowForm(true);
     setEvent(eventForUpdate || { ...defaultEvent, date: dayItem.format("X") });
     setMethod(methodName);
@@ -110,6 +122,7 @@ function App() {
       [field]: text,
     }));
   };
+
   const eventFetchHandler = () => {
     const fetchUrl =
       method === "Update" ? `${url}/events/${event.id}` : `${url}/events`;
@@ -163,28 +176,29 @@ function App() {
           <FormWrapper onClick={(e) => e.stopPropagation()}>
             <EventTitle
               value={event.title}
-              placeholder="Title"
               onChange={(e) => changeEventHandler(e.target.value, "title")}
+              placeholder="Title"
             />
             <EventBody
               value={event.description}
-              placeholder="Description"
               onChange={(e) =>
                 changeEventHandler(e.target.value, "description")
               }
+              placeholder="Description"
             />
             <ButtonsWrapper>
-              <button onClick={cancelButtonHandler}>Cancel</button>
-              <button onClick={eventFetchHandler}>{method}</button>
+              <Button onClick={cancelButtonHandler}>Cancel</Button>
+              <Button onClick={eventFetchHandler}>{method}</Button>
               {method === "Update" ? (
-                <button onClick={removeEventHandler}>Remove</button>
+                <Button danger onClick={removeEventHandler}>
+                  Remove
+                </Button>
               ) : null}
             </ButtonsWrapper>
           </FormWrapper>
         </FormPositionWrapper>
       ) : null}
       <ShadowWrapper>
-        <Header />
         <Monitor
           today={today}
           prevHandler={prevHandler}
