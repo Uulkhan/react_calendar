@@ -73,7 +73,9 @@ const Button = styled("button")`
   }
 `;
 
-const url = "http://localhost:5000";
+// const url = "http://localhost:5000";
+const url = "https://my-daily-notes-calendar.herokuapp.com/api";
+
 const totalDays = 42;
 const defaultEvent = {
   title: "",
