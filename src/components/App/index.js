@@ -2,9 +2,19 @@ import React, { useEffect, useState } from "react";
 import moment from "moment";
 import styled from "styled-components";
 import Monitor from "../Monitor/Monitor";
+import { DISPLAY_MODE_DAY, DISPLAY_MODE_MONTH } from "../../helpers/constants";
 import CalendarGrid from "../CalendarGrid/CalendarGrid";
+import { DayShowComponent } from "../DayShowComponent";
+import {
+  ButtonsWrapper,
+  ButtonWrapper,
+  EventBody,
+  EventTitle,
+} from "../../containers/StyledComponents";
 
 const ShadowWrapper = styled("div")`
+  min-width: 850px;
+  height: 702px;
   border-top: 1px solid #737374;
   border-left: 1px solid #464648;
   border-right: 1px solid #464648;
@@ -12,6 +22,8 @@ const ShadowWrapper = styled("div")`
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 0 0 1px #1a1a1a, 0 8px 20px 6px #888;
+  display: flex;
+  flex-direction: column;
 `;
 
 const FormPositionWrapper = styled("div")`
@@ -29,52 +41,14 @@ const FormPositionWrapper = styled("div")`
 
 const FormWrapper = styled(ShadowWrapper)`
   width: 320px;
+  min-width: 320px;
+  height: 132px;
   background-color: #1e1f21;
   color: #dddddd;
+  box-shadow: unset;
 `;
 
-const EventTitle = styled("input")`
-  padding: 8px 14px;
-  font-size: 0.85rem;
-  width: 100%;
-  border: unset;
-  background-color: #1e1f21;
-  color: #dddddd;
-  outline: unset;
-  border-bottom: 1px solid #464648;
-`;
-
-const EventBody = styled("textarea")`
-  padding: 8px 14px;
-  font-size: 0.85rem;
-  width: 100%;
-  border: unset;
-  background-color: #1e1f21;
-  color: #dddddd;
-  outline: unset;
-  border-bottom: 1px solid #464648;
-  resize: none;
-  height: 60px;
-`;
-
-const ButtonsWrapper = styled("div")`
-  padding: 8px 14px;
-  display: flex;
-  justify-content: flex-end;
-`;
-
-const Button = styled("button")`
-  color: ${(props) => (props.danger ? "#f00" : "#27282A")};
-  border: 1px solid ${(props) => (props.danger ? "#f00" : "#27282A")};
-  border-radius: 2px;
-  cursor: pointer;
-  &:not(:last-child) {
-    margin-right: 2px;
-  }
-`;
-
-// const url = "http://localhost:5000";
-const url = "https://my-daily-notes-calendar.herokuapp.com/api";
+const url = "http://localhost:3001";
 
 const totalDays = 42;
 const defaultEvent = {
@@ -84,14 +58,17 @@ const defaultEvent = {
 };
 
 function App() {
+  const [displayMode, setDisplayMode] = useState(DISPLAY_MODE_MONTH);
+
   moment.updateLocale("en", { week: { dow: 1 } });
   const [today, setToday] = useState(moment());
-  const startDay = today.clone().startOf("month").startOf("week");
+  const startDay = today.clone().startOf(DISPLAY_MODE_MONTH).startOf("week");
 
   const prevHandler = () =>
-    setToday((prev) => prev.clone().subtract(1, "month"));
+    setToday((prev) => prev.clone().subtract(1, displayMode));
   const todayHandler = () => setToday(moment());
-  const nextHandler = () => setToday((prev) => prev.clone().add(1, "month"));
+  const nextHandler = () =>
+    setToday((prev) => prev.clone().add(1, displayMode));
 
   const [method, setMethod] = useState(null);
   const [isShowForm, setShowForm] = useState(false);
@@ -107,12 +84,15 @@ function App() {
   }, [today]);
 
   const openFormHandler = (methodName, eventForUpdate, dayItem) => {
-    console.log("onClick", methodName);
-    setShowForm(true);
     setEvent(eventForUpdate || { ...defaultEvent, date: dayItem.format("X") });
     setMethod(methodName);
   };
 
+  const openModalFormHandler = (methodName, eventForUpdate, dayItem) => {
+    setShowForm(true);
+    openFormHandler(methodName, eventForUpdate, dayItem)
+  };
+  
   const cancelButtonHandler = () => {
     setShowForm(false);
     setEvent(null);
@@ -189,12 +169,16 @@ function App() {
               placeholder="Description"
             />
             <ButtonsWrapper>
-              <Button onClick={cancelButtonHandler}>Cancel</Button>
-              <Button onClick={eventFetchHandler}>{method}</Button>
+              <ButtonWrapper onClick={cancelButtonHandler}>
+                Cancel
+              </ButtonWrapper>
+              <ButtonWrapper onClick={eventFetchHandler}>
+                {method}
+              </ButtonWrapper>
               {method === "Update" ? (
-                <Button danger onClick={removeEventHandler}>
+                <ButtonWrapper danger onClick={removeEventHandler}>
                   Remove
-                </Button>
+                </ButtonWrapper>
               ) : null}
             </ButtonsWrapper>
           </FormWrapper>
@@ -206,14 +190,34 @@ function App() {
           prevHandler={prevHandler}
           todayHandler={todayHandler}
           nextHandler={nextHandler}
+          setDisplayMode={setDisplayMode}
+          displayMode={displayMode}
         />
-        <CalendarGrid
-          startDay={startDay}
-          today={today}
-          totalDays={totalDays}
-          events={events}
-          openFormHandler={openFormHandler}
-        />
+        {displayMode === "month" ? (
+          <CalendarGrid
+            startDay={startDay}
+            today={today}
+            totalDays={totalDays}
+            events={events}
+            openModalFormHandler={openModalFormHandler}
+            setDisplayMode={setDisplayMode}
+          />
+        ) : null}
+
+        {displayMode === DISPLAY_MODE_DAY ? (
+          <DayShowComponent
+            today={today}
+            events={events}
+            selectedEvent={event}
+            setEvent={setEvent}
+            changeEventHandler={changeEventHandler}
+            cancelButtonHandler={cancelButtonHandler}
+            eventFetchHandler={eventFetchHandler}
+            removeEventHandler={removeEventHandler}
+            method={method}
+            openFormHandler={openFormHandler}
+          />
+        ) : null}
       </ShadowWrapper>
     </>
   );

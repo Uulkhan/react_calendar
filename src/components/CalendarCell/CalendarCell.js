@@ -1,9 +1,13 @@
 import React from "react";
 import styled from "styled-components";
 import { isCurrentDay, isSelectedMonth } from "../../helpers";
-import { CellWrapperDiv, RowInCellDiv } from "../../containers/containers.js";
+import {
+  CellWrapper,
+  RowInCell,
+} from "../../containers/StyledComponents/index.js";
+import { DISPLAY_MODE_DAY } from "../../helpers/constants";
 
-const DayWrapperDiv = styled.div`
+const DayWrapper = styled.div`
   height: 31px;
   width: 31px;
   display: flex;
@@ -13,7 +17,7 @@ const DayWrapperDiv = styled.div`
   cursor: pointer; ;
 `;
 
-const CurrentDayDiv = styled("div")`
+const CurrentDay = styled("div")`
   height: 100%;
   width: 100%;
   background: #f00;
@@ -23,7 +27,7 @@ const CurrentDayDiv = styled("div")`
   justify-content: center;
 `;
 
-const ShowDayWrapperDiv = styled("div")`
+const ShowDayWrapper = styled("div")`
   display: flex;
   justify-content: flex-end;
 `;
@@ -59,37 +63,52 @@ const EventItemWrapper = styled("button")`
   border-radius: 2px;
 `;
 
-export const CalendarCell = ({ dayItem, today, openFormHandler, events }) => {
+export const CalendarCell = ({
+  dayItem,
+  today,
+  openModalFormHandler,
+  events,
+  setDisplayMode,
+}) => {
   return (
-    <CellWrapperDiv
+    <CellWrapper
       isWeekday={dayItem.day() === 6 || dayItem.day() === 0}
       key={dayItem.unix()}
       isSelectedMonth={isSelectedMonth(dayItem, today)}
     >
-      <RowInCellDiv justifyContent={"flex-end"}>
-        <ShowDayWrapperDiv>
-          <DayWrapperDiv
-            onClick={() => openFormHandler("Create", null, dayItem)}
+      <RowInCell justifyContent={"flex-end"}>
+        <ShowDayWrapper>
+          <DayWrapper
+            onClick={() => openModalFormHandler("Create", null, dayItem)}
           >
             {isCurrentDay(dayItem) ? (
-              <CurrentDayDiv>{dayItem.format("D")}</CurrentDayDiv>
+              <CurrentDay>{dayItem.format("D")}</CurrentDay>
             ) : (
               dayItem.format("D")
             )}
-          </DayWrapperDiv>
-        </ShowDayWrapperDiv>
+          </DayWrapper>
+        </ShowDayWrapper>
         <EventListWrapper>
           {events.slice(0, 2).map((event) => (
             <EventListItemWrapper key={event.id}>
               <EventItemWrapper
-                onClick={() => openFormHandler("Update", event)}
+                onClick={() => openModalFormHandler("Update", event)}
               >
                 {event.title}
               </EventItemWrapper>
             </EventListItemWrapper>
           ))}
+          {events.length > 2 ? (
+            <EventListItemWrapper key="show more">
+              <EventItemWrapper
+                onClick={() => setDisplayMode(DISPLAY_MODE_DAY)}
+              >
+                Show more...
+              </EventItemWrapper>
+            </EventListItemWrapper>
+          ) : null}
         </EventListWrapper>
-      </RowInCellDiv>
-    </CellWrapperDiv>
+      </RowInCell>
+    </CellWrapper>
   );
 };

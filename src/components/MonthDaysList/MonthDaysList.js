@@ -6,8 +6,9 @@ export const MonthDaysList = ({
   startDay,
   totalDays,
   events,
-  openFormHandler,
+  openModalFormHandler,
   today,
+  setDisplayMode,
 }) => {
   const day = startDay.clone().subtract(1, "day");
   const daysMap = [...Array(totalDays)].map(() => day.add(1, "day").clone());
@@ -18,8 +19,9 @@ export const MonthDaysList = ({
       events={events.filter((event) =>
         isDayContainCurrentEvent(event, dayItem)
       )}
-      openFormHandler={openFormHandler}
+      openModalFormHandler={openModalFormHandler}
       dayItem={dayItem}
+      setDisplayMode={setDisplayMode}
     />
   ));
 };
