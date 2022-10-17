@@ -48,9 +48,9 @@ const FormWrapper = styled(ShadowWrapper)`
   box-shadow: unset;
 `;
 
-const url = "http://localhost:3001";
+const url = process.env.API_URL ? process.env.API_URL : "http://localhost:3001";
 
-const totalDays = 42;
+const totalDays = 42; 
 const defaultEvent = {
   title: "",
   description: "",
@@ -90,9 +90,9 @@ function App() {
 
   const openModalFormHandler = (methodName, eventForUpdate, dayItem) => {
     setShowForm(true);
-    openFormHandler(methodName, eventForUpdate, dayItem)
+    openFormHandler(methodName, eventForUpdate, dayItem);
   };
-  
+
   const cancelButtonHandler = () => {
     setShowForm(false);
     setEvent(null);
