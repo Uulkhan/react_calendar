@@ -48,7 +48,8 @@ const FormWrapper = styled(ShadowWrapper)`
   box-shadow: unset;
 `;
 
-const url = "http://localhost:3001";
+// const url = "http://localhost:3001";
+const url = "https://react-calendar-server.herokuapp.com";
 const totalDays = 42;
 const defaultEvent = {
   title: "",
