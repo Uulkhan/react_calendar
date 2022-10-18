@@ -37,7 +37,8 @@ const ButtonWrapper = styled("button")`
   border: unset;
   background-color: ${(props) => (props.unPressed ? "#27282A" : "#565759")};
   border: 1px solid #565759;
-  height: 20px;
+  height: 30px;
+  width: 80px;
   border-radius: 4px;
   color: ${(props) => (props.unPressed ? "#a4a6a9" : "#E6E6E6")};
   outline: unset;

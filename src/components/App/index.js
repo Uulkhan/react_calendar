@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import moment from "moment";
 import styled from "styled-components";
-import Monitor from "../Monitor/Monitor";
 import { DISPLAY_MODE_DAY, DISPLAY_MODE_MONTH } from "../../helpers/constants";
-import CalendarGrid from "../CalendarGrid/CalendarGrid";
 import { DayShowComponent } from "../DayShowComponent";
 import {
   ButtonsWrapper,
@@ -11,6 +9,8 @@ import {
   EventBody,
   EventTitle,
 } from "../../containers/StyledComponents";
+import Monitor from "../Monitor/Monitor";
+import CalendarGrid from "../CalendarGrid/CalendarGrid";
 
 const ShadowWrapper = styled("div")`
   min-width: 850px;
@@ -48,21 +48,22 @@ const FormWrapper = styled(ShadowWrapper)`
   box-shadow: unset;
 `;
 
-const url = process.env.API_URL ? process.env.API_URL : "http://localhost:3001";
-
-const totalDays = 42; 
+const url = "http://localhost:3001";
+const totalDays = 42;
 const defaultEvent = {
   title: "",
   description: "",
+  duration: 1,
   date: moment().format("X"),
 };
-
 function App() {
   const [displayMode, setDisplayMode] = useState(DISPLAY_MODE_MONTH);
-
   moment.updateLocale("en", { week: { dow: 1 } });
+  // const today = moment();
   const [today, setToday] = useState(moment());
-  const startDay = today.clone().startOf(DISPLAY_MODE_MONTH).startOf("week");
+  const startDay = today.clone().startOf("month").startOf("week");
+
+  // window.moment = moment;
 
   const prevHandler = () =>
     setToday((prev) => prev.clone().subtract(1, displayMode));
@@ -84,11 +85,12 @@ function App() {
   }, [today]);
 
   const openFormHandler = (methodName, eventForUpdate, dayItem) => {
-    setEvent(eventForUpdate || { ...defaultEvent, date: dayItem.format("X") });
+    setEvent(eventForUpdate || { ...defaultEvent, date: dayItem.format("X") }); // todo
     setMethod(methodName);
   };
 
   const openModalFormHandler = (methodName, eventForUpdate, dayItem) => {
+    console.log("onDoubleClick", methodName);
     setShowForm(true);
     openFormHandler(methodName, eventForUpdate, dayItem);
   };
@@ -119,7 +121,6 @@ function App() {
     })
       .then((res) => res.json())
       .then((res) => {
-        console.log(res);
         if (method === "Update") {
           setEvents((prevState) =>
             prevState.map((eventEl) => (eventEl.id === res.id ? res : eventEl))
@@ -193,7 +194,7 @@ function App() {
           setDisplayMode={setDisplayMode}
           displayMode={displayMode}
         />
-        {displayMode === "month" ? (
+        {displayMode === DISPLAY_MODE_MONTH ? (
           <CalendarGrid
             startDay={startDay}
             today={today}
@@ -203,18 +204,17 @@ function App() {
             setDisplayMode={setDisplayMode}
           />
         ) : null}
-
         {displayMode === DISPLAY_MODE_DAY ? (
           <DayShowComponent
-            today={today}
             events={events}
+            today={today}
             selectedEvent={event}
             setEvent={setEvent}
             changeEventHandler={changeEventHandler}
             cancelButtonHandler={cancelButtonHandler}
             eventFetchHandler={eventFetchHandler}
-            removeEventHandler={removeEventHandler}
             method={method}
+            removeEventHandler={removeEventHandler}
             openFormHandler={openFormHandler}
           />
         ) : null}

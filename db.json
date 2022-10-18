@@ -13,34 +13,25 @@
       "id": 6
     },
     {
-      "title": "fffff",
-      "description": "ffffffffffff",
-      "date": "1665856800",
+      "title": "Housework",
+      "description": "Water the plants",
+      "duration": 1,
+      "date": "1666080000",
       "id": 7
     },
     {
-      "title": "fffff",
-      "description": "ffffffffffff",
-      "date": "1665856800",
+      "title": "Fight to IST",
+      "description": "Catch flight PC8876666",
+      "duration": 5,
+      "date": "1667692800",
       "id": 8
     },
     {
-      "title": "flight",
-      "description": "pc99999",
-      "date": "1665943200",
+      "title": "Flight to Belgrade",
+      "description": "98888888",
+      "duration": 2,
+      "date": "1667980800",
       "id": 9
-    },
-    {
-      "title": "jjjj",
-      "description": "jjjjj",
-      "date": "1665943200",
-      "id": 10
-    },
-    {
-      "title": "heyyy",
-      "description": "yyyyyyyy",
-      "date": "1665943200",
-      "id": 11
     }
   ]
 }

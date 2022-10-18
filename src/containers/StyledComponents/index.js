@@ -78,8 +78,9 @@ export const ButtonsWrapper = styled("div")`
 
 export const ButtonWrapper = styled("button")`
   color: ${(props) => (props.danger ? "#f00" : "#27282A")};
-  border: 1px solid ${(props) => (props.danger ? "#f00" : "#27282A")};
-  border-radius: 2px;
+  border: 0.5px solid ${(props) => (props.danger ? "#f00" : "#27282A")};
+  border-radius: 5px;
+  padding: 5px;
   cursor: pointer;
   &:not(:last-child) {
     margin-right: 2px;

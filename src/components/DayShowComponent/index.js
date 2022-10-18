@@ -1,18 +1,18 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import moment from "moment";
+import {
+  isDayContainCurrentEvent,
+  isDayContainCurrentTimestamp,
+} from "../../helpers";
 import {
   ButtonsWrapper,
   ButtonWrapper,
   EventBody,
   EventItemWrapper,
-  EventListItemWrapper,
-  EventListWrapper,
   EventTitle,
 } from "../../containers/StyledComponents";
-
-import { isDayContainCurrentEvent } from "../../helpers";
-import { ITEMS_PER_DAY } from "../../helpers/constants";
+import { ITEMS_PER_DAY, ONE_SECOND } from "../../helpers/constants";
 
 const DayShowWrapper = styled("div")`
   display: flex;
@@ -70,9 +70,16 @@ const ScaleCellEventWrapper = styled("div")`
 `;
 
 const EventItemButton = styled(EventItemWrapper)`
-  min-width: 50px;
+  min-width: ${(props) => props.w}px;
+  height: ${(props) => props.h}px;
   width: unset;
   margin-left: 4px;
+  position: absolute;
+  left: ${(props) => props.left}px;
+  top: ${(props) => props.top}px;
+  display: flex;
+  padding: 1px;
+  background-color: rgba(93, 95, 99, 0.75);
 `;
 
 const SelectEventTimeWrapper = styled("div")`
@@ -111,77 +118,164 @@ const RedLine = styled("div")`
   right: 0;
   top: ${(props) => props.position}%;
 `;
+const DropdownBtn = styled("button")`
+  border: none;
+  padding: 5px 5px;
+  margin-right: 5px;
+  border-radius: 3px;
+`;
+const CreateEventWrapperDiv = styled('div')`
+display:flex;
+justify-content: center;
+`
 
 export const DayShowComponent = ({
   events,
   today,
-  setEvent,
   selectedEvent,
-  setDisplayMode,
   changeEventHandler,
   cancelButtonHandler,
   eventFetchHandler,
-  removeEventHandler,
   method,
+  removeEventHandler,
   openFormHandler,
 }) => {
+  const [heightDiv, setHeightDiv] = useState(0);
+  const ref = useRef(null);
+  useEffect(() => {
+    setHeightDiv(ref.current.clientHeight / ITEMS_PER_DAY);
+  }, []);
+
+  const eventWidth = 40;
   const eventList = events.filter((event) =>
     isDayContainCurrentEvent(event, today)
   );
-
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showDurationPicker, setShowDurationPicker] = useState(false);
   const cells = [...new Array(ITEMS_PER_DAY)].map((_, i) => {
-    const temp = [];
-    eventList.forEach((event) => {
-      // event.date -> '1661295600' -> moment -> timestamp -> H  ? -> 0
-      if (+moment.unix(+event.date).format("H") === i) {
-        temp.push(event);
-      }
-    });
-    return temp;
+    // const temp = [];
+    // eventList.forEach(event => {
+    //   // event.date -> '1661295600' -> moment -> timestamp -> H  ? -> 0
+    //   if (+moment.unix(+event.date).format('H') === i) {
+    //     temp.push(event);
+    //   }
+    // })
+    // return temp;
   });
+
+  const setTimeForEvent = (i) => {
+    setShowTimePicker(false);
+    const time = moment
+      .unix(+selectedEvent.date)
+      .hour(i)
+      .format("X");
+    changeEventHandler(time, "date");
+  };
+
+  const setDurationForEvent = (i) => {
+    setShowDurationPicker(false);
+    changeEventHandler(i, "duration");
+  };
+
+  const getTopPosition = (event) => {
+    return heightDiv * +moment.unix(+event.date).format("H");
+  };
+
+  const getRedLinePosition = () =>
+    ((moment().format("X") - today.format("X")) / 86400) * 100;
+
+  const [, setCounter] = useState(0);
+  useEffect(() => {
+    const timerId = setInterval(() => {
+      setCounter((prevState) => prevState + 1);
+    }, ONE_SECOND);
+
+    return () => clearInterval(timerId);
+  }, []);
 
   return (
     <DayShowWrapper>
       <EventsListWrapper>
-        {/* <EventListWrapper>
-          {eventList.map((event) => (
-            <EventListItemWrapper key={event.id}>
-              <EventItemWrapper
-                onClick={() => openFormHandler("Update", event)}
-              >
-                {event.title}
-              </EventItemWrapper>
-            </EventListItemWrapper>
-          ))}
-        </EventListWrapper> */}
-        <ScaleWrapper>
+        <ScaleWrapper ref={ref}>
+          {isDayContainCurrentTimestamp(moment().format("X"), today) ? (
+            <RedLine position={getRedLinePosition()} />
+          ) : null}
           {cells.map((eventsList, i) => (
             <ScaleCellWrapper>
               <ScaleCellTimeWrapper>
                 {i ? <>{`${i}`.padStart(2, "0")}:00</> : null}
               </ScaleCellTimeWrapper>
-
-              <ScaleCellEventWrapper>
-                {eventsList.map((event) => (
-                  <EventItemButton
-                    onClick={() => openFormHandler("Update", event)}
-                  >
-                    {event.title}
-                  </EventItemButton>
-                ))}
-              </ScaleCellEventWrapper>
+              <ScaleCellEventWrapper />
             </ScaleCellWrapper>
+          ))}
+          {eventList.map((event, i) => (
+            <EventItemButton
+              w={eventWidth}
+              h={heightDiv * event.duration}
+              onClick={() => openFormHandler("Update", event)}
+              left={32 + (eventWidth + 1) * i}
+              top={getTopPosition(event)}
+            >
+              {event.title}
+            </EventItemButton>
           ))}
         </ScaleWrapper>
       </EventsListWrapper>
       <EventFormWrapper>
         {selectedEvent ? (
-          <>
+          <div>
             <EventTitle
               value={selectedEvent.title}
               onChange={(e) => changeEventHandler(e.target.value, "title")}
               placeholder="Title"
             />
+            <SelectEventTimeWrapper>
+              <PositionRelative>
+                <DropdownBtn>
+                  {moment.unix(+selectedEvent.date).format("dddd, D MMMM")}
+                </DropdownBtn>
+              </PositionRelative>
+              <PositionRelative>
+                <DropdownBtn
+                  onClick={() => setShowTimePicker((prevState) => !prevState)}
+                >
+                  {moment.unix(+selectedEvent.date).format("HH:mm")}
+                </DropdownBtn>
+                {showTimePicker ? (
+                  <ListOfHours>
+                    {[...new Array(ITEMS_PER_DAY)].map((_, i) => (
+                      <li>
+                        <HoursButton onClick={() => setTimeForEvent(i)}>
+                          {`${i}`.padStart(2, "0")}:00
+                        </HoursButton>
+                      </li>
+                    ))}
+                  </ListOfHours>
+                ) : null}
+              </PositionRelative>
+            </SelectEventTimeWrapper>
+            <SelectEventTimeWrapper>
+              <PositionRelative>
+                <DropdownBtn
+                  onClick={() =>
+                    setShowDurationPicker((prevState) => !prevState)
+                  }
+                >
+                  {`${selectedEvent.duration}`.padStart(2, "0")}:00
+                </DropdownBtn>
+                {showDurationPicker ? (
+                  <ListOfHours>
+                    {[...new Array(ITEMS_PER_DAY)].map((_, i) => (
+                      <li>
+                        <HoursButton onClick={() => setDurationForEvent(i + 1)}>
+                          {`${i + 1}`.padStart(2, "0")}:00
+                        </HoursButton>
+                      </li>
+                    ))}
+                  </ListOfHours>
+                ) : null}
+              </PositionRelative>
+            </SelectEventTimeWrapper>
             <EventBody
               value={selectedEvent.description}
               onChange={(e) =>
@@ -191,26 +285,30 @@ export const DayShowComponent = ({
             />
             <ButtonsWrapper>
               <ButtonWrapper onClick={cancelButtonHandler}>
-                Cancel
+                <span>Cancel</span>
               </ButtonWrapper>
               <ButtonWrapper onClick={eventFetchHandler}>
                 {method}
               </ButtonWrapper>
               {method === "Update" ? (
                 <ButtonWrapper danger onClick={removeEventHandler}>
-                  Remove
+                  <span>Remove</span>
                 </ButtonWrapper>
               ) : null}
             </ButtonsWrapper>
-          </>
+          </div>
         ) : (
           <>
-            <div>
-              <button onClick={() => openFormHandler("Create", null, today)}>
-                Create new event
-              </button>
-            </div>
-            <NoEventMsg>No event selected</NoEventMsg>
+            <CreateEventWrapperDiv>
+              <DropdownBtn
+                onClick={() => openFormHandler("Create", null, today)}
+              >
+                <span>Add new event</span>
+              </DropdownBtn>
+            </CreateEventWrapperDiv>
+            <NoEventMsg>
+              <span>No event selected</span>
+            </NoEventMsg>
           </>
         )}
       </EventFormWrapper>
